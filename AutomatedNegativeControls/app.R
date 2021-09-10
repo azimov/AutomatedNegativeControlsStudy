@@ -97,6 +97,7 @@ negativeControlsTab <- fluidPage(
 tEE <- fluidRow(
   h3("Total Expected Systematic Error"),
   p("Below is the expected total systematic error, computed with automated negative controls, for all Rx-Norm ingrerdient exposures"),
+  textOutput("teeExpCount"),
   shinycssloaders::withSpinner(plotOutput("teeDist")),
   p("Violin plots of the distribution of expected absolute systematic error across null distributions generated from outcome controls for all exposures in each data source.
    Though 2 standard deviations of error are below 0.5 for all the datasets, in some cases systematic error appears to be extreme.
@@ -277,12 +278,16 @@ server <- function(input, output) {
                                                                 siblingLookupLevelsInput = reactive({ 0 }))
 
   output$teeDist <- renderPlot({
-    ggplot2::ggplot(nullDists[nullDists$sourceId !=15,], ggplot2::aes(x = sourceName, y = absoluteError, color = sourceName)) +
+    ggplot2::ggplot(nullDists[nullDists$sourceId == selectedDataSource(),], ggplot2::aes(x = sourceName, y = absoluteError, color = sourceName)) +
       ggplot2::geom_violin() +
       ggplot2::geom_boxplot(width = 0.2) +
       ggplot2::xlab("Data Source") +
       ggplot2::ylab("Expected Absolute Systematic Error") +
       ggplot2::theme(legend.position = "none", text = ggplot2::element_text(size = 11))
+  })
+  
+  output$teeExpCount <- renderText({
+    paste("Selected data source includes", nullDists %>% filter(sourceId == selectedDataSource()) %>% count() %>% pull(), "Exposures" )
   })
 }
 
